@@ -51,10 +51,7 @@ init_log(void)
 	if (logfile) {
 #ifndef _WIN32
 		int fd = fileno(logfile);
-		int flags = fcntl(fd, F_GETFD, 0);
-		if (flags >= 0) {
-			fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
-		}
+                set_cloexec_flag(fd);
 #endif
 		return true;
 	} else {
@@ -1190,6 +1187,7 @@ create_tmp_fd(char **fname)
 	if (fd == -1) {
 		fatal("Failed to create file %s: %s", template, strerror(errno));
 	}
+	set_cloexec_flag(fd);
 
 #ifndef _WIN32
 	fchmod(fd, 0666 & ~get_umask());
@@ -1703,3 +1701,15 @@ subst_env_in_string(const char *str, char **errmsg)
 	reformat(&result, "%s%.*s", result, (int)(q - p), p);
 	return result;
 }
+
+void
+set_cloexec_flag (int fd)
+{
+#ifndef _WIN32
+	int flags = fcntl(fd, F_GETFD, 0);
+	if (flags >= 0) {
+		fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+	}
+#endif
+}
+

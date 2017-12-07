@@ -2906,6 +2906,7 @@ setup_uncached_err(void)
 	int uncached_fd;
 
 	uncached_fd = dup(2);
+	set_cloexec_flag(uncached_fd);
 	if (uncached_fd == -1) {
 		cc_log("dup(2) failed: %s", strerror(errno));
 		failed();
